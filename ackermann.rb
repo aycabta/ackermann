@@ -1,7 +1,6 @@
 require 'continuation'
 require 'benchmark'
 require 'active_support'
-require './stackless'
 
 include ActiveSupport::Memoizable
 
@@ -16,19 +15,7 @@ def ack(m, n)
 end
 memoize :ack
 
-def lazy_ack(m, n)
-  if (m_entity = m.call) == 0
-    n.call + 1
-  elsif (n_entity = n.call) == 0
-    lazy_ack(lambda{m_entity - 1}, lambda{1})
-  else
-    lazy_ack(lambda{m_entity - 1}, lambda{lazy_ack(lambda{m_entity}, lambda{n_entity - 1})})
-  end
-end
-memoize :lazy_ack
-
 def cc_ack(m, n)
-  max_sp = 0
   stack = [nil]
   sp = 0
   cont = nil
@@ -50,11 +37,73 @@ def cc_ack(m, n)
   else
     stack << nil
     sp = sp + 1
-    if sp > max_sp
-      max_sp = sp
-      p 'sp record: ' + max_sp.to_s
-    end
     cont.call([stack[sp - 1][:m], stack[sp - 1][:n] - 1])
+  end
+end
+
+def cc_general_ack(m, n)
+  stack = Array.new
+  sp = 0
+  result = 0
+  start = nil
+  m, n = callcc do |cc|
+    start = cc
+    [m, n]
+  end
+  if m == 0
+    if sp == 0
+      return n + 1
+    else
+      sp = sp - 1
+      node = stack.pop
+      result = n + 1
+      node[:cc].call(node[:m], node[:n])
+    end
+  elsif n == 0
+    start.call(m - 1, 1)
+  else
+    cont = nil
+    m, n = callcc do |cc|
+      cont = cc
+      stack << {:m => m, :n => n, :cc => cont}
+      sp = sp + 1
+      start.call(m, n - 1)
+    end
+    start.call(m - 1, result)
+  end
+end
+
+class Module
+  NoStacklessMethodSuffix = '__no_stackless'
+  def stackless_method(*names)
+    allow_stack = Numeric===names.last ? names.pop : 200
+    names.each do |name|
+      raise NameError, "method `#{name}' for class `#{self}'" \
+        " is already stackless" if stackless_method? name
+      stk_name = (name.to_s + ::Module::NoStacklessMethodSuffix).intern
+      alias_method stk_name, name
+      define_method(name) do |*args, &blk|
+        if caller(allow_stack).nil?
+          send stk_name, *args, &blk
+        else
+          Fiber.new(&method(stk_name)).resume(*args, &blk)
+        end
+      end
+    end
+  end
+
+  def stackless_method?(name)
+    method_defined?((name.to_s + ::Module::NoStacklessMethodSuffix).intern)
+  end
+
+  def remove_stackless(*names)
+    names.each do |name|
+      raise NameError, "unknown stackless method `#{name}' " \
+        "for class `#{self}'" unless stackless_method? name
+      stk_name = (name.to_s + ::Module::NoStacklessMethodSuffix).intern
+      alias_method name, stk_name
+      remove_method stk_name
+    end
   end
 end
 
@@ -95,10 +144,11 @@ def run_ack(func, m, n)
   end
 end
 
-m_init = 4
-n_init = 1
+m_init = 3
+n_init = 4
 
-#run_ack(:ack, m_init, n_init)
-#run_ack(:cc_ack, m_init, n_init)
+run_ack(:ack, m_init, n_init)
+run_ack(:cc_general_ack, m_init, n_init)
+run_ack(:cc_ack, m_init, n_init)
 run_ack(:stackless_ack_call, m_init, n_init)
 
