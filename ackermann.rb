@@ -144,8 +144,8 @@ def run_ack(func, m, n)
   end
 end
 
-m_init = 3
-n_init = 4
+m_init = 4
+n_init = 2
 
 run_ack(:ack, m_init, n_init)
 run_ack(:cc_general_ack, m_init, n_init)
