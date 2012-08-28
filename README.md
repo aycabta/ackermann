@@ -14,6 +14,7 @@ Ruby
 C
 -
 
+* compliant implementation
 * setjmp/longjmp implementation optimized Ackermnn function
 * setjmp/longjmp general implementation
 
