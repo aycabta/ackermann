@@ -12,34 +12,29 @@ def ack(m, n)
 end
 
 def cc_ack(m, n)
-  stack = [nil]
-  sp = 0
+  stack = Array.new
   cont = nil
-  args = callcc do |cc|
+  m, n = callcc do |cc|
     cont = cc
     [m, n]
   end
-  stack[sp] = {:m => args[0], :n => args[1]}
-  if stack[sp][:m] == 0
-    if sp == 0
-      stack[sp][:n] + 1
+  if m == 0
+    if stack.size == 0
+      n + 1
     else
       node = stack.pop
-      sp = sp - 1
-      cont.call([stack[sp][:m] - 1, node[:n] + 1])
+      cont.call([node[:m] - 1, n + 1])
     end
-  elsif stack[sp][:n] == 0
-    cont.call [stack[sp][:m] - 1, 1]
+  elsif n == 0
+    cont.call([m - 1, 1])
   else
-    stack << nil
-    sp = sp + 1
-    cont.call([stack[sp - 1][:m], stack[sp - 1][:n] - 1])
+    stack << {:m => m, :n => n}
+    cont.call([m, n - 1])
   end
 end
 
 def cc_general_ack(m, n)
   stack = Array.new
-  sp = 0
   result = 0
   start = nil
   m, n = callcc do |cc|
@@ -47,10 +42,9 @@ def cc_general_ack(m, n)
     [m, n]
   end
   if m == 0
-    if sp == 0
+    if stack.size == 0
       return n + 1
     else
-      sp = sp - 1
       node = stack.pop
       result = n + 1
       node[:cc].call(node[:m], node[:n])
@@ -62,7 +56,6 @@ def cc_general_ack(m, n)
     m, n = callcc do |cc|
       cont = cc
       stack << {:m => m, :n => n, :cc => cont}
-      sp = sp + 1
       start.call(m, n - 1)
     end
     start.call(m - 1, result)
@@ -125,23 +118,24 @@ end
 
 def run_ack(func, m, n)
   begin
-    p "start: " + func.to_s + "(" + m.to_s + ", " + n.to_s + ")"
+    puts "start: #{func}(#{m}, #{n})\n"
     result = nil
     t = Benchmark.measure do
       result = Object.send(func, m, n)
     end
-    p "result: " + result.to_s
-    puts t.to_s
+    puts "result: #{result}\n"
+    puts t.format("%.8r") + "\n"
   rescue Exception => e
-    p e.message
+    puts "ERROR\n"
+    puts "#{e.message}\n"
     e.backtrace.each do |line|
-      p line
+      puts "#{line}\n"
     end
   end
 end
 
-m_init = 4
-n_init = 2
+m_init = 3
+n_init = 4
 
 run_ack(:ack, m_init, n_init)
 run_ack(:cc_general_ack, m_init, n_init)
