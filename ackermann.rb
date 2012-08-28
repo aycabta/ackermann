@@ -1,8 +1,5 @@
 require 'continuation'
 require 'benchmark'
-require 'active_support'
-
-include ActiveSupport::Memoizable
 
 def ack(m, n)
   if m == 0
@@ -13,7 +10,6 @@ def ack(m, n)
     ack(m - 1, ack(m, n - 1))
   end
 end
-memoize :ack
 
 def cc_ack(m, n)
   stack = [nil]
