@@ -1,4 +1,4 @@
-ackermann
+Ackermann
 =========
 
 Some implementations of Ackermann function
@@ -17,4 +17,11 @@ C
 * compliant implementation
 * setjmp/longjmp implementation optimized Ackermnn function
 * setjmp/longjmp general implementation
+
+TODO
+----
+
+* create Makefile
+* other languages
+* other approaches
 
