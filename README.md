@@ -1,7 +1,7 @@
 Ackermann
 =========
 
-Some implementations of Ackermann functiol.
+Some implementations of Ackermann function.
 
 Each Languages
 --------------
