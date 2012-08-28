@@ -1,9 +1,9 @@
 Ackermann
 =========
 
-Some implementations of Ackermann function
+Some implementations of Ackermann functiol.
 
-each languages
+Each Languages
 --------------
 
 ### Ruby
