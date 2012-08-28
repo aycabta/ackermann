@@ -3,16 +3,17 @@ Ackermann
 
 Some implementations of Ackermann function
 
-Ruby
-----
+each languages
+--------------
+
+### Ruby
 
 * compliant implementation
 * calcc implementation optimized Ackermann function
 * calcc general implementation
 * Fiber implementation
 
-C
--
+### C
 
 * compliant implementation
 * setjmp/longjmp implementation optimized Ackermnn function
