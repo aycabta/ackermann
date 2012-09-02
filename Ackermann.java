@@ -1,12 +1,12 @@
 import java.math.BigInteger;
 import java.util.ArrayList;
 
-abstract class AckermannBase {
+interface Ackermann {
 	abstract BigInteger Ack(BigInteger m, BigInteger n);
 }
 
-class Ackermann extends AckermannBase {
-	BigInteger Ack(BigInteger m, BigInteger n) {
+class AckermannNormal implements Ackermann {
+	public BigInteger Ack(BigInteger m, BigInteger n) {
 		if (m.equals(BigInteger.ZERO)) {
 			return n.add(BigInteger.ONE);
 		} else if (n.equals(BigInteger.ZERO)) {
@@ -17,14 +17,10 @@ class Ackermann extends AckermannBase {
 	}
 }
 
-class AckermannWhile extends AckermannBase {
+class AckermannWhile implements Ackermann {
 	private ArrayList<BigInteger> stack = new ArrayList<BigInteger>();
 
-	public AckermannWhile() {
-		super();
-	}
-
-	BigInteger Ack(BigInteger mInput, BigInteger nInput) {
+	public BigInteger Ack(BigInteger mInput, BigInteger nInput) {
 		BigInteger m;
 		BigInteger n;
 
@@ -62,7 +58,7 @@ class AckermannRunner {
 				return;
 			}
 			System.out.println("start: (new " + className + "()).Ack(" + m.toString(10) + ", " + n.toString(10) + ")");
-			AckermannBase ack = (AckermannBase)clazz.newInstance();
+			Ackermann ack = (Ackermann)clazz.newInstance();
 			start = System.nanoTime();
 			result = ack.Ack(m, n);
 			end = System.nanoTime();
@@ -78,7 +74,7 @@ class AckermannRunner {
 	public static void main(String[] args) {
 		BigInteger m = new BigInteger("4");
 		BigInteger n = new BigInteger("1");
-		Run("Ackermann", m, n);
+		Run("AckermannNormal", m, n);
 		Run("AckermannWhile", m, n);
 	}
 }
