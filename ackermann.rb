@@ -11,6 +11,27 @@ def ack(m, n)
   end
 end
 
+def while_ack(m, n)
+  stack = Array.new
+  cont = nil
+  while true do
+    if m == 0
+      if stack.size == 0
+        return n + 1
+      else
+        m = stack.pop - 1
+        n = n + 1
+      end
+    elsif n == 0
+      m = m - 1
+      n = 1
+    else
+      stack << m
+      n = n - 1
+    end
+  end
+end
+
 def cc_ack(m, n)
   stack = Array.new
   cont = nil
@@ -141,4 +162,5 @@ run_ack(:ack, m_init, n_init)
 run_ack(:cc_general_ack, m_init, n_init)
 run_ack(:cc_ack, m_init, n_init)
 run_ack(:stackless_ack_call, m_init, n_init)
+run_ack(:while_ack, m_init, n_init)
 
