@@ -12,12 +12,20 @@ Each Languages
 * calcc implementation optimized Ackermann function
 * calcc general implementation
 * Fiber implementation
+* while loop implementation
 
 ### C
 
 * compliant implementation
 * setjmp/longjmp implementation optimized Ackermnn function
 * setjmp/longjmp general implementation
+* while loop implementation
+* goto implementation
+
+### Java
+
+* compliant implementation
+* while loop implementation
 
 TODO
 ----
