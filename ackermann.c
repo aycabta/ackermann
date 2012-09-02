@@ -6,12 +6,18 @@
 typedef unsigned long long ack_val_t;
 typedef ack_val_t (*ack_func_t)(ack_val_t, ack_val_t);
 
-typedef struct _ack_t
+typedef struct _ack_jmp_node_t
 {
     ack_val_t m;
     ack_val_t n;
     jmp_buf jmp;
-} ack_t;
+} ack_jmp_node_t;
+
+typedef struct _ack_node_t
+{
+    ack_val_t m;
+    ack_val_t n;
+} ack_node_t;
 
 int int_ack(int m, int n)
 {
@@ -35,14 +41,88 @@ ack_val_t ack(ack_val_t m, ack_val_t n)
     }
 }
 
+ack_val_t while_ack(ack_val_t m, ack_val_t n)
+{
+    ack_node_t* stack;
+    ack_node_t* node;
+    ack_val_t sp;
+
+    stack = (ack_node_t*)malloc(sizeof(ack_node_t) * 6 * 1024 * 1024);
+    if (stack == NULL) {
+        return 0;
+    }
+
+    sp = 0L;
+
+    while (1) {
+        if (m == 0L) {
+            if (sp == 0L) {
+                return n + 1L;
+            } else {
+                sp--;
+                node = &(stack[sp]);
+                m = node->m - 1L;
+                n = n + 1L;
+            }
+        } else if (n == 0L) {
+            m = m - 1L;
+            n = 1L;
+        } else {
+            stack[sp].m = m;
+            stack[sp].n = n;
+            m = m;
+            n = n - 1L;
+            sp++;
+        }
+    }
+}
+
+ack_val_t goto_ack(ack_val_t m, ack_val_t n)
+{
+    ack_node_t* stack;
+    ack_node_t* node;
+    ack_val_t sp;
+
+    stack = (ack_node_t*)malloc(sizeof(ack_node_t) * 6 * 1024 * 1024);
+    if (stack == NULL) {
+        return 0;
+    }
+
+    sp = 0L;
+
+    start:
+    if (m == 0L) {
+        if (sp == 0L) {
+            return n + 1L;
+        } else {
+            sp--;
+            node = &(stack[sp]);
+            m = node->m - 1L;
+            n = n + 1L;
+            goto start;
+        }
+    } else if (n == 0L) {
+        m = m - 1L;
+        n = 1L;
+        goto start;
+    } else {
+        stack[sp].m = m;
+        stack[sp].n = n;
+        m = m;
+        n = n - 1L;
+        sp++;
+        goto start;
+    }
+}
+
 ack_val_t jmp_ack(ack_val_t m, ack_val_t n)
 {
-    ack_t* stack;
-    ack_t* node;
+    ack_node_t* stack;
+    ack_node_t* node;
     ack_val_t sp;
     jmp_buf start;
 
-    stack = (ack_t*)malloc(sizeof(ack_t) * 6 * 1024 * 1024);
+    stack = (ack_node_t*)malloc(sizeof(ack_node_t) * 6 * 1024 * 1024);
     if (stack == NULL) {
         return 0;
     }
@@ -76,13 +156,13 @@ ack_val_t jmp_ack(ack_val_t m, ack_val_t n)
 
 ack_val_t jmp_general_ack(ack_val_t m, ack_val_t n)
 {
-    ack_t* stack;
-    ack_t* node;
+    ack_jmp_node_t* stack;
+    ack_jmp_node_t* node;
     ack_val_t sp;
     ack_val_t result;
     jmp_buf start;
 
-    stack = (ack_t*)malloc(sizeof(ack_t) * 6 * 1024 * 1024);
+    stack = (ack_jmp_node_t*)malloc(sizeof(ack_jmp_node_t) * 6 * 1024 * 1024);
     if (stack == NULL) {
         return 0;
     }
@@ -151,8 +231,10 @@ int main(void)
     n_init = 1L;
 
     run_ack(ack, m_init, n_init);
-    run_ack(jmp_ack, m_init, n_init);
+    run_ack(goto_ack, m_init, n_init);
+    run_ack(while_ack, m_init, n_init);
     run_ack(jmp_general_ack, m_init, n_init);
+    run_ack(jmp_ack, m_init, n_init);
 
     return 0;
 }
