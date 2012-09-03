@@ -11,22 +11,41 @@ def ack(m, n)
   end
 end
 
+def log(stack, m, n, out_of_otherwise = false)
+  str = stack.inject("") do |str, node|
+    str + "Ack(#{node - 1}, "
+  end
+  if m == 0
+    str = str + "#{n + 1}"
+  elsif n == 0
+    str = str + "Ack(#{m - 1}, 1)"
+  else
+    str = str + "Ack(#{m}, #{n - 1})"
+  end
+  "= " + str + ")" * stack.size + "\n"
+end
+
 def while_ack(m, n)
   stack = Array.new
   cont = nil
+#  puts "  Ack(#{m}, #{n})\n"
   while true do
     if m == 0
       if stack.size == 0
+#        puts log(stack, m, n)
         return n + 1
       else
+#        puts log(stack, m, n)
         m = stack.pop - 1
         n = n + 1
       end
     elsif n == 0
+#      puts log(stack, m, n)
       m = m - 1
       n = 1
     else
       stack << m
+#      puts log(stack, m, n)
       n = n - 1
     end
   end
