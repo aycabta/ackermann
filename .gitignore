@@ -1,7 +1,7 @@
 ackermann
 ackermann.o
 output
-ackermann.dSYM
+*.dSYM
 *.swp
 *.class
 
