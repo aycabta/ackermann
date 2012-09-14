@@ -1,5 +1,7 @@
 ackermann
 ackermann.o
+ackermann_gmp.o
+ackermann_gmp
 output
 *.dSYM
 *.swp
