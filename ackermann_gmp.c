@@ -17,6 +17,7 @@ typedef struct _ack_node_t
 {
     int m;
     mpz_t run_length;
+    int run_length_;
 } ack_node_t;
 
 mpz_t ZERO;
@@ -35,7 +36,7 @@ mpz_t ack(mpz_t m, mpz_t n)
 }
 */
 
-mpz_t* while_ack(int m, mpz_t n)
+mpz_t* while_ack_mpn(int m, mpz_t n_input)
 {
     ack_node_t* stack;
     ack_node_t* node;
@@ -44,11 +45,17 @@ mpz_t* while_ack(int m, mpz_t n)
     long long max_sp;
     mpz_t* result;
     long long i;
+    mpz_t n;
+    mpz_ptr run_length;
+    mp_limb_t cy;
 
     stack = (ack_node_t*)malloc(sizeof(ack_node_t) * 1024 * 1024);
     if (stack == NULL) {
         return &ZERO;
     }
+
+    mpz_init(n);
+    mpz_set(n, n_input);
 
     result = (mpz_t*)malloc(sizeof(mpz_t));
     if (result == NULL) {
@@ -68,6 +75,120 @@ mpz_t* while_ack(int m, mpz_t n)
                     mpz_clear(stack[i].run_length);
                 }
                 free(stack);
+                mpz_clear(n);
+                return result;
+            } else {
+                node = &(stack[sp - 1]);
+                m = node->m - 1;
+                if (node->run_length->_mp_size == 0) {
+                    sp--;
+                } else {
+                    run_length = node->run_length;
+                    mpn_sub_1(run_length->_mp_d, run_length->_mp_d, run_length->_mp_size, (mp_limb_t)1L);
+                    if (run_length->_mp_d[0] == 0L) {
+                        run_length->_mp_d[run_length->_mp_size] = 0;
+                        run_length->_mp_size--;
+                        run_length->_mp_d[run_length->_mp_size] = 0;
+                    }
+                }
+                if (n->_mp_alloc < n->_mp_size + 1) {
+                    _mpz_realloc(n, n->_mp_alloc + 1);
+                }
+                if (n->_mp_size == 0) {
+                    mpn_add_1(n->_mp_d, n->_mp_d, n->_mp_size, (mp_limb_t)1L);
+                    n->_mp_size = 1;
+                    n->_mp_d[0] = 1;
+                } else {
+                    cy = mpn_add_1(n->_mp_d, n->_mp_d, n->_mp_size, (mp_limb_t)1L);
+                    if (cy == 1) {
+                        n->_mp_d[n->_mp_size] = 1;
+                        n->_mp_size++;
+                        n->_mp_d[n->_mp_size] = 0;
+                    }
+                }
+            }
+        } else if (n->_mp_size == 0) {
+            m--;
+            n->_mp_size = 1;
+            n->_mp_d[0] = 1;
+        } else {
+            node = &(stack[sp - 1]);
+            if (sp > 0 && node->m == m) {
+                run_length = node->run_length;
+                if (run_length->_mp_alloc < run_length->_mp_size + 1) {
+                    _mpz_realloc(run_length, run_length->_mp_alloc + 1);
+                }
+                if (run_length->_mp_size == 0) {
+                    mpn_add_1(run_length->_mp_d, run_length->_mp_d, run_length->_mp_size, (mp_limb_t)1L);
+                    run_length->_mp_size = 1;
+                    run_length->_mp_d[0] = 1;
+                } else {
+                    cy = mpn_add_1(run_length->_mp_d, run_length->_mp_d, run_length->_mp_size, (mp_limb_t)1L);
+                    if (cy == 1) {
+                        run_length->_mp_d[run_length->_mp_size] = 1;
+                        run_length->_mp_size++;
+                        run_length->_mp_d[run_length->_mp_size] = 0;
+                    }
+                }
+            } else {
+                next_node = &(stack[sp]);
+                if (sp > max_sp) {
+                    max_sp = sp;
+                    mpz_init(next_node->run_length);
+                }
+                next_node->m = m;
+                next_node->run_length->_mp_size = 0;
+                sp++;
+            }
+            mpn_sub_1(n->_mp_d, n->_mp_d, n->_mp_size, (mp_limb_t)1L);
+            if (n->_mp_d[0] == 0L) {
+                n->_mp_d[n->_mp_size] = 0;
+                n->_mp_size--;
+                n->_mp_d[n->_mp_size] = 0;
+            }
+        }
+    }
+}
+
+
+mpz_t* while_ack(int m, mpz_t n_input)
+{
+    ack_node_t* stack;
+    ack_node_t* node;
+    ack_node_t* next_node;
+    long long sp;
+    long long max_sp;
+    mpz_t* result;
+    long long i;
+    mpz_t n;
+
+    stack = (ack_node_t*)malloc(sizeof(ack_node_t) * 1024 * 1024);
+    if (stack == NULL) {
+        return &ZERO;
+    }
+
+    mpz_init(n);
+    mpz_set(n, n_input);
+
+    result = (mpz_t*)malloc(sizeof(mpz_t));
+    if (result == NULL) {
+        free(stack);
+        return &ZERO;
+    }
+    mpz_init(*result);
+
+    sp = 0L;
+    max_sp = -1L;
+
+    while (1) {
+        if (m == 0) {
+            if (sp == 0L) {
+                mpz_add(*result, n, ONE);
+                for (i = 0; i < max_sp; ++i) {
+                    mpz_clear(stack[i].run_length);
+                }
+                free(stack);
+                mpz_clear(n);
                 return result;
             } else {
                 node = &(stack[sp - 1]);
@@ -269,6 +390,7 @@ int main(void)
 //    run_ack(ack, m_init, n_init);
 //    run_ack(goto_ack, m_init, n_init);
     run_ack(while_ack, m_init, n_init);
+    run_ack(while_ack_mpn, m_init, n_init);
 //    run_ack(jmp_general_ack, m_init, n_init);
 //    run_ack(jmp_ack, m_init, n_init);
 
