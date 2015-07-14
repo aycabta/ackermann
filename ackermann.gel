@@ -1,0 +1,9 @@
+function a(m,n) = (
+	print("m = " + m)
+	if (m == 0) then
+		n + 1;
+	if (m > 0 and n == 0) then
+		a(m-1, 1);
+	if (m > 0 and n > 0) then
+		a(m-1, a(m, n-1));
+)
